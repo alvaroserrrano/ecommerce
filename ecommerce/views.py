@@ -6,17 +6,17 @@ from django.utils import timezone
 
 class HomeView(ListView):
     model = Item
-    template_name= 'ecommerce/home-page.html'
+    template_name= 'home-page.html'
 
 class ItemDetailView(DetailView):
     model = Item
-    template_name = 'ecommerce/product-page.html'
+    template_name = 'product-page.html'
 
 def checkout(request):
     context={
         'items': Item.objects.all()
     }
-    return render(request, 'ecommerce/checkout-page.html', context)
+    return render(request, 'checkout-page.html', context)
 
 def add_to_cart(request, slug):
     item = get_object_or_404(Item, slug=slug)
@@ -28,16 +28,16 @@ def add_to_cart(request, slug):
             order_item.quantity += 1
             order_item.save()
             messages.info(request, 'Item quantity successfully updated')
-            return redirect("ecommerce:product", slug=slug)
+            return redirect("product", slug=slug)
         else:
             messages.info(request, 'Item added to the cart')
             order.items.add(order_item)
-            return redirect("ecommerce:product", slug=slug)
+            return redirect("product", slug=slug)
     else:
         ordered_date = timezone.now()
         order = Order.objects.create(user=request.user, ordered=False, ordered_date =ordered_date)
         order.items.add(order_item)
-        return redirect("ecommerce:product", slug=slug)
+        return redirect("product", slug=slug)
 
 def remove_from_cart(request, slug):
     item= get_object_or_404(Item, slug=slug)
@@ -52,14 +52,14 @@ def remove_from_cart(request, slug):
             messages.info(request, 'Item removed from cart')
             #TODO
             #return redirect('ecommerce:order-summary')
-            return redirect("ecommerce:product", slug=slug)
+            return redirect("product", slug=slug)
         else:
             #item not in order
             messages.info(request, "Item was not in your cart")
-            return redirect('ecommerce:product', slug=slug)
+            return redirect('product', slug=slug)
     else:
         #user does not have an order
         messages.info(request, 'No active order was found')
-        return redirect("ecommerce:product", slug=slug)
+        return redirect("product", slug=slug)
 
 
