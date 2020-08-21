@@ -50,7 +50,9 @@ def remove_from_cart(request, slug):
             order.items.remove(order_item)
             order_item.delete()
             messages.info(request, 'Item removed from cart')
-            return redirect("ecommerce:product")
+            #TODO
+            #return redirect('ecommerce:order-summary')
+            return redirect("ecommerce:product", slug=slug)
         else:
             #item not in order
             messages.info(request, "Item was not in your cart")
@@ -59,3 +61,5 @@ def remove_from_cart(request, slug):
         #user does not have an order
         messages.info(request, 'No active order was found')
         return redirect("ecommerce:product", slug=slug)
+
+
