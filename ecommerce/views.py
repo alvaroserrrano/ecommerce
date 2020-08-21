@@ -3,6 +3,7 @@ from django.contrib import messages
 from .models import Item, OrderItem, Order
 from django.views.generic import ListView, DetailView
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 
 class HomeView(ListView):
     model = Item
@@ -18,6 +19,7 @@ def checkout(request):
     }
     return render(request, 'checkout-page.html', context)
 
+@login_required
 def add_to_cart(request, slug):
     item = get_object_or_404(Item, slug=slug)
     order_item, created = OrderItem.objects.get_or_create(item=item, user=request.user, ordered=False)
@@ -39,6 +41,7 @@ def add_to_cart(request, slug):
         order.items.add(order_item)
         return redirect("product", slug=slug)
 
+@login_required
 def remove_from_cart(request, slug):
     item= get_object_or_404(Item, slug=slug)
     order_qs = Order.objects.filter(user=request.user, ordered=False)
