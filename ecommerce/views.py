@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 
 class HomeView(ListView):
     model = Item
+    paginate_by = 10
     template_name= 'home-page.html'
 
 class ItemDetailView(DetailView):
@@ -30,16 +31,16 @@ def add_to_cart(request, slug):
             order_item.quantity += 1
             order_item.save()
             messages.info(request, 'Item quantity successfully updated')
-            return redirect("product", slug=slug)
+            return redirect("ecommerce:product", slug=slug)
         else:
             messages.info(request, 'Item added to the cart')
             order.items.add(order_item)
-            return redirect("product", slug=slug)
+            return redirect("ecommerce:product", slug=slug)
     else:
         ordered_date = timezone.now()
         order = Order.objects.create(user=request.user, ordered=False, ordered_date =ordered_date)
         order.items.add(order_item)
-        return redirect("product", slug=slug)
+        return redirect("ecommerce:product", slug=slug)
 
 @login_required
 def remove_from_cart(request, slug):
@@ -55,14 +56,14 @@ def remove_from_cart(request, slug):
             messages.info(request, 'Item removed from cart')
             #TODO
             #return redirect('ecommerce:order-summary')
-            return redirect("product", slug=slug)
+            return redirect("ecommerce:product", slug=slug)
         else:
             #item not in order
             messages.info(request, "Item was not in your cart")
-            return redirect('product', slug=slug)
+            return redirect('ecommerce:product', slug=slug)
     else:
         #user does not have an order
         messages.info(request, 'No active order was found')
-        return redirect("product", slug=slug)
+        return redirect("ecommerce:product", slug=slug)
 
 

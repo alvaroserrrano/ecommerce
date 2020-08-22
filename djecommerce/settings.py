@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
+    'crispy_forms',
+    'django_countries',
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -125,6 +128,10 @@ SITE_ID = 1
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+CRISPY_TEMPLATE_PACK='bootstrap4'
+
+LOGIN_REDIRECT_URL='/'
 
 #auth
 
