@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from .models import Item, OrderItem, Order
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, View
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 
@@ -9,6 +10,15 @@ class HomeView(ListView):
     model = Item
     paginate_by = 10
     template_name= 'home-page.html'
+
+class OrderSummaryView(View):
+    def get(self, *args, **kwargs):
+        try:
+            order=Order.objects.get(user=request.user, ordered=False)
+            return render(self.request, 'order-summary.html')
+        except ObjectDoesNotExist:
+            messages.error(self.request, 'You do not have an active order')
+            return redirect('/')
 
 class ItemDetailView(DetailView):
     model = Item
