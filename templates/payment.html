@@ -106,7 +106,7 @@ button:hover {
         <div class="col-md-12 mb-4">
           <div class="card">
 
-            {% comment %} {% if card %}
+            {% if card %}
               <div style="padding: 5px 30px;">
                 <div class="custom-control custom-checkbox">
                   <input type="checkbox" class="custom-control-input" name="use_default_card" id="use_default_card">
@@ -115,7 +115,7 @@ button:hover {
                   <span>Exp: {{ card.exp_month }}/{{ card.exp_year }}</span></label>
                 </div>
               </div>
-            {% endif %} {% endcomment %}
+            {% endif %}     
 
             <div class="current-card-form">
               <form action="." method="post" class="stripe-form">
@@ -153,7 +153,7 @@ button:hover {
           </div>
         </div>
 
-        {% comment %} {% include "order_snippet.html" %} {% endcomment %}
+         {% include "order_snippet.html" %}
 
       </div>
 
@@ -165,7 +165,7 @@ button:hover {
 
 {% block extra_scripts %}
 
-<script src="https://js.stripe.com/v3/"></script>
+
 <script nonce="">  // Create a Stripe client.
   var stripe = Stripe('{{STRIPE_PUBLIC_KEY}}');
 
@@ -207,13 +207,13 @@ button:hover {
   });
 
   // Handle form submission.
-  var form = document.getElementById('stripe-form');
+  var form = document.getElementById('payment-form');
   form.addEventListener('submit', function(event) {
     event.preventDefault();
 
     stripe.createToken(card).then(function(result) {
       if (result.error) {
-        // Inform the user if there was an error.
+        // Inform the customer that there was an error.
         var errorElement = document.getElementById('card-errors');
         errorElement.textContent = result.error.message;
       } else {
@@ -226,7 +226,7 @@ button:hover {
   // Submit the form with the token ID.
   function stripeTokenHandler(token) {
     // Insert the token ID into the form so it gets submitted to the server
-    var form = document.getElementById('stripe-form');
+    var form = document.getElementById('payment-form');
     var hiddenInput = document.createElement('input');
     hiddenInput.setAttribute('type', 'hidden');
     hiddenInput.setAttribute('name', 'stripeToken');
@@ -236,6 +236,7 @@ button:hover {
     // Submit the form
     form.submit();
   }
+
 
   var currentCardForm = $('.current-card-form');
   var newCardForm = $('.new-card-form');
@@ -253,3 +254,11 @@ button:hover {
 </script>
 
 {% endblock extra_scripts %}
+
+<script src="https://js.stripe.com/v3/"></script>
+<script nonce="">  // Create a Stripe client.
+  
+var stripe = Stripe('{{STRIPE_PUBLIC_KEY}}');
+
+// Create an instance of Elements.
+var elements = stripe.elements();

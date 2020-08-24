@@ -1,6 +1,14 @@
 from django.urls import path
-from .views import (CheckoutView, add_to_cart, HomeView, ItemDetailView, remove_from_cart, OrderSummaryView, remove_single_item_from_cart, PaymentView)
-
+from .views import (
+    ItemDetailView,
+    CheckoutView,
+    HomeView,
+    OrderSummaryView,
+    add_to_cart,
+    remove_from_cart,
+    remove_single_item_from_cart,
+    PaymentView
+)
 app_name='ecommerce'
 
 urlpatterns = [
