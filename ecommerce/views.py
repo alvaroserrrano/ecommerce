@@ -3,8 +3,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Item, OrderItem, Order, Address, Payment, UserProfile
-from .forms import CheckoutForm, PaymentForm
+from .models import Item, OrderItem, Order, Address, Payment, UserProfile, Coupon
+from .forms import CheckoutForm, PaymentForm, CouponForm
 from django.views.generic import ListView, DetailView, View
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
@@ -49,9 +49,9 @@ class CheckoutView(View):
             form = CheckoutForm()
             context = {
                 'form': form,
-                # 'couponform': CouponForm(),
+                'couponform': CouponForm(),
                 'order': order,
-                # 'DISPLAY_COUPON_FORM': True
+                'DISPLAY_COUPON_FORM': True
             }
 
             shipping_address_qs = Address.objects.filter(
@@ -330,6 +330,29 @@ class PaymentView(View):
         #invalid form submission
         messages.warning(self.request, 'Invalid data received')
         return redirect('/payment/stripe/')
+
+def get_coupon(request, code):
+    try:
+        coupon = Coupon.objects.get(code=code)
+        return coupon
+    except ObjectDoesNotExist:
+        messages.info(request, "This coupon does not exist")
+        return redirect("core:checkout")
+
+class AddCouponView(View):
+    def post(self, *args, **kwargs):
+        form = CouponForm(self.request.POST or None)
+        if form.is_valid():
+            try:
+                code = form.cleaned_data.get('code')
+                order = Order.objects.get(user=self.request.user, ordered=False)
+                order.coupon = get_coupon(self.request, code)
+                order.save()
+                messages.success(self.request, "Successfully added coupon")
+                return redirect("core:checkout")
+            except ObjectDoesNotExist:
+                messages.info(self.request, "You do not have an active order")
+                return redirect("core:checkout")
 
 
 @login_required
