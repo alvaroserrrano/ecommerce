@@ -1,10 +1,10 @@
-import environ
+# import environ
+from decouple import config
 import os
 
-env = environ.Env(
-    # set casting, default value
-    DEBUG=(bool, False)
-)
+
+#     DEBUG=(bool, False)
+# )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -13,13 +13,22 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 # reading .env file
-environ.Env.read_env()
+# environ.Env.read_env()
 
 # False if not in os.environ
-DEBUG = env('DEBUG')
+# DEBUG = env('DEBUG')
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Raises django's ImproperlyConfigured exception if SECRET_KEY not in os.environ
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY')
+
+#Stripe secret key
+STRIPE_PUBLIC_KEY=config('STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY=config('STRIPE_SECRET_KEY')
+STRIPE_LIVE_PUBLIC_KEY=config('STRIPE_LIVE_PUBLIC_KEY')
+STRIPE_LIVE_SECRET_KEY=config('STRIPE_LIVE_SECRET_KEY')
+STRIPE_TEST_PUBLIC_KEY=config('STRIPE_TEST_PUBLIC_KEY')
+STRIPE_TEST_SECRET_KEY=config('STRIPE_TEST_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
