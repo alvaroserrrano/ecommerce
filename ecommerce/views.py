@@ -9,8 +9,19 @@ from django.views.generic import ListView, DetailView, View
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 import stripe
+import random
 
 stripe.api_key=settings.STRIPE_SECRET_KEY
+
+def create_ref_code():
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=20))
+
+
+def products(request):
+    context = {
+        'items': Item.objects.all()
+    }
+    return render(request, "products.html", context)
 
 #check if form submission is valid
 def is_valid_form(values):
@@ -212,18 +223,32 @@ class CheckoutView(View):
 
 
 class PaymentView(View):
-
     def get(self, *args, **kwargs):
-        order=Order.objects.get(user=self.request.user, ordered=False)
+        order = Order.objects.get(user=self.request.user, ordered=False)
         if order.billing_address:
             context = {
                 'order': order,
                 'DISPLAY_COUPON_FORM': False,
                 'STRIPE_PUBLIC_KEY' : settings.STRIPE_PUBLIC_KEY
             }
+            userprofile = self.request.user.userprofile
+            if userprofile.one_click_purchasing:
+                # fetch the users card list
+                cards = stripe.Customer.list_sources(
+                    userprofile.stripe_customer_id,
+                    limit=3,
+                    object='card'
+                )
+                card_list = cards['data']
+                if len(card_list) > 0:
+                    # update the context with the default card
+                    context.update({
+                        'card': card_list[0]
+                    })
             return render(self.request, "payment.html", context)
         else:
-            messages.warning(self.request, "You have not added a billing address")
+            messages.warning(
+                self.request, "You have not added a billing address")
             return redirect("core:checkout")
 
     def post(self, *args, **kwargs):
@@ -234,6 +259,7 @@ class PaymentView(View):
             token = form.cleaned_data.get('stripeToken')
             save = form.cleaned_data.get('save')
             use_default = form.cleaned_data.get('use_default')
+
             if save:
                 if userprofile.stripe_customer_id != '' and userprofile.stripe_customer_id is not None:
                     customer = stripe.Customer.retrieve(
@@ -250,7 +276,9 @@ class PaymentView(View):
                     userprofile.save()
 
             amount = int(order.get_total() * 100)
+
             try:
+
                 if use_default or save:
                     # charge the customer because we cannot charge the token more than once
                     charge = stripe.Charge.create(
@@ -262,7 +290,7 @@ class PaymentView(View):
                     # charge once off on the token
                     charge = stripe.Charge.create(
                         amount=amount,  # cents
-                        currency="usd",
+                        currency="eur",
                         source=token
                     )
 
@@ -287,6 +315,7 @@ class PaymentView(View):
 
                 messages.success(self.request, "Your order was successful!")
                 return redirect("/")
+
             except stripe.error.CardError as e:
                 body = e.json_body
                 err = body.get('error', {})
@@ -327,9 +356,9 @@ class PaymentView(View):
                 messages.warning(
                     self.request, "A serious error occurred. We have been notifed.")
                 return redirect("/")
-        #invalid form submission
-        messages.warning(self.request, 'Invalid data received')
-        return redirect('/payment/stripe/')
+
+        messages.warning(self.request, "Invalid data received")
+        return redirect("/payment/stripe/")
 
 def get_coupon(request, code):
     try:
@@ -337,7 +366,7 @@ def get_coupon(request, code):
         return coupon
     except ObjectDoesNotExist:
         messages.info(request, "This coupon does not exist")
-        return redirect("core:checkout")
+        return redirect("ecommerce:checkout")
 
 class AddCouponView(View):
     def post(self, *args, **kwargs):
@@ -349,10 +378,10 @@ class AddCouponView(View):
                 order.coupon = get_coupon(self.request, code)
                 order.save()
                 messages.success(self.request, "Successfully added coupon")
-                return redirect("core:checkout")
+                return redirect("ecommerce:checkout")
             except ObjectDoesNotExist:
                 messages.info(self.request, "You do not have an active order")
-                return redirect("core:checkout")
+                return redirect("ecommerce:checkout")
 
 
 @login_required

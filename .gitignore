@@ -47,3 +47,6 @@ media/
 **/migrations/**
 !**/migrations
 !**/migrations/__init__.py
+
+media_root
+static_root
