@@ -223,6 +223,7 @@ class CheckoutView(View):
             return redirect("ecommerce:order-summary")
 
 
+
 class PaymentView(View):
     def get(self, *args, **kwargs):
         order = Order.objects.get(user=self.request.user, ordered=False)
@@ -250,7 +251,7 @@ class PaymentView(View):
         else:
             messages.warning(
                 self.request, "You have not added a billing address")
-            return redirect("core:checkout")
+            return redirect("ecommerce:checkout")
 
     def post(self, *args, **kwargs):
         order = Order.objects.get(user=self.request.user, ordered=False)
@@ -360,7 +361,6 @@ class PaymentView(View):
 
         messages.warning(self.request, "Invalid data received")
         return redirect("/payment/stripe/")
-
 def get_coupon(request, code):
     try:
         coupon = Coupon.objects.get(code=code)
